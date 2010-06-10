@@ -13,6 +13,8 @@
  * jQuery.mb.components: jquery.mb.audio
  * version: 0.1- 9-giu-2010 - 30
  * © 2001 - 2010 Matteo Bicocchi (pupunzi), Open Lab
+ *
+ * HTML5 AUDIO TAG doesn't work i IE8 <
  */
 
 (function($){
@@ -24,26 +26,49 @@
     defaults:{
       id:"",
       ogg:"",
-      mp3:""
+      mp3:"",
+      loop:false,
+      volume:1
     },
     sounds:{},
     loaded:new Object(),
     play:function(sound){
       var soundEl= eval("$.mbAudio.sounds."+sound);
-
-     // $.extend($.mbAudio.defaults,opt);
+      var loop= soundEl.loop?soundEl.loop:$.mbAudio.defaults.loop;
+      var volume= typeof soundEl.volume == "number" ?soundEl.volume:$.mbAudio.defaults.volume;
       if($.mbAudio.loaded[sound]!=1){
-
-        var audio="<audio id='"+sound+"'>";
-        var oggSource="<source src='"+soundEl.ogg+"' type='audio/ogg'>";
-        var mp3Source="<source src='"+soundEl.mp3+"' type='audio/mpeg'>";
-        $("body").append(audio);
-        audio=$("#"+sound);
+        var audio=$("<audio>").attr("id",sound);
+        var oggSource=$("<source>").attr({src:soundEl.ogg, type:"audio/ogg"});
+        var mp3Source=$("<source>").attr({src:soundEl.mp3, type:"audio/mpeg"});
         audio.append(mp3Source).append(oggSource);
+
+        $("body").append(audio);
         $.mbAudio.loaded[sound]=1;
       }
-        var player= document.getElementById(sound);
-        player.play();
+
+      var player= document.getElementById(sound);
+      if(loop){
+        counter=0;
+        $(player).bind("ended",function(){
+          this.currentTime = 0;
+          if(typeof loop == "number"){
+            counter++;
+            if(counter==loop){
+              $(this).unbind('ended');
+            }
+          }
+        });
+
+        player.addEventListener('timeupdate', function(){},false);
+      }
+      player.volume=volume;
+      player.play();
+    },
+    stop:function(sound){
+      var player= document.getElementById(sound);
+      player.pause();
+      player.currentTime=0;
+      $(player).unbind('ended');
     }
   }
 })(jQuery);

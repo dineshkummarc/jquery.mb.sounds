@@ -18,16 +18,21 @@
   <script type="text/javascript" src="inc/jquery.mb.audio.js"></script>
   <script type="text/javascript">
     $.mbAudio.sounds={
-      sound1:{ogg:"sounds/button-19.ogg",mp3:"sounds/button-19.mp3"},
-      sound2:{ogg:"sounds/button-20.ogg",mp3:"sounds/button-20.mp3"}
-    }
+      sound1:{ogg:"sounds/button-41.ogg",mp3:"sounds/button-41.mp3", loop:true, volume:1, sec:1000},
+      sound2:{ogg:"sounds/button-20.ogg",mp3:"sounds/button-20.mp3"},
+      sound3:{ogg:"sounds/button-30.ogg",mp3:"sounds/button-30.mp3", loop:false, volume:1, sec:1000}
+    };
+    $(function(){
+      $("#playSound1").toggle(function(){$.mbAudio.play('sound1');$(this).html("stop sound 1")},function(){$.mbAudio.stop('sound1');$(this).html("play sound 1")})
+    })
   </script>
 
 </head>
 <body>
 
-  <span style="cursor:pointer" onclick="$.mbAudio.play('sound1')">play sound</span><br>
-  <span style="cursor:pointer" onmouseover="$.mbAudio.play('sound2')">play sound</span>
+  <button id="playSound1" >play sound 1</button>
+  <!--<button id="playSound1" style="cursor:pointer" onclick="$.mbAudio.play('sound1')">play sound</button> <button style="cursor:pointer" onclick="$.mbAudio.stop('sound1')">stop sound</button>-->
+  <button style="cursor:pointer" onmouseover="$.mbAudio.play('sound2')">roll over to play sound</button> <button style="cursor:pointer" onclick="$.mbAudio.play('sound3')">play sound</button>
 
 </body>
 </html>
