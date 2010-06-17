@@ -18,7 +18,6 @@
  */
 
 (function($){
-
   $.mbAudio ={
     name:"mb.audio",
     author:"Matteo Bicocchi",
