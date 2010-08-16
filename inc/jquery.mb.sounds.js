@@ -16,6 +16,9 @@
  *
  * HTML5 AUDIO TAG doesn't work i IE8 <
  */
+String.prototype.asId = function () {
+  return this.replace(/[^a-zA-Z0-9_]+/g, '');
+};
 
 (function($){
   $.mbAudio ={
@@ -32,20 +35,21 @@
     sounds:{},
     loaded:new Object(),
     play:function(sound){
-      var soundEl= eval("$.mbAudio.sounds."+sound);
+      var sID=typeof sound == "string"?sound:sound.ogg.split(".")[0].asId();
+      var soundEl= typeof sound == "string"?eval("$.mbAudio.sounds."+sound):sound;
       var loop= soundEl.loop?soundEl.loop:$.mbAudio.defaults.loop;
       var volume= typeof soundEl.volume == "number" ?soundEl.volume:$.mbAudio.defaults.volume;
-      if($.mbAudio.loaded[sound]!=1){
-        var audio=$("<audio>").attr("id",sound);
+      if($.mbAudio.loaded[sID]!=1){
+        var audio=$("<audio>").attr("id",sID);
         var oggSource=$("<source>").attr({src:soundEl.ogg, type:"audio/ogg"});
         var mp3Source=$("<source>").attr({src:soundEl.mp3, type:"audio/mpeg"});
         audio.append(mp3Source).append(oggSource);
 
         $("body").append(audio);
-        $.mbAudio.loaded[sound]=1;
+        $.mbAudio.loaded[sID]=1;
       }
 
-      var player= document.getElementById(sound);
+      var player= document.getElementById(sID);
       if(loop){
         counter=0;
         $(player).bind("ended",function(){
@@ -64,7 +68,8 @@
       player.play();
     },
     stop:function(sound){
-      var player= document.getElementById(sound);
+      var sID=typeof sound == "string"?sound:sound.ogg.split(".")[0].asId();
+      var player= document.getElementById(sID);
       player.pause();
       player.currentTime=0;
       $(player).unbind('ended');
