@@ -10,7 +10,7 @@
  ******************************************************************************/
 
 /*
- * jQuery.mb.components: jquery.mb.audio
+ * jQuery.mb.components: jquery.mb.sounds
  * version: 0.1- 9-giu-2010 - 30
  * © 2001 - 2010 Matteo Bicocchi (pupunzi), Open Lab
  *
@@ -22,7 +22,7 @@ String.prototype.asId = function () {
 
 (function($){
   $.mbAudio ={
-    name:"mb.audio",
+    name:"mb.sounds",
     author:"Matteo Bicocchi",
     version:"0.1",
     defaults:{
