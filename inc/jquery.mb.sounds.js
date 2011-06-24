@@ -17,62 +17,205 @@
  * HTML5 AUDIO TAG doesn't work i IE8 <
  */
 String.prototype.asId = function () {
-  return this.replace(/[^a-zA-Z0-9_]+/g, '');
+	return this.replace(/[^a-zA-Z0-9_]+/g, '');
 };
 
 (function($){
-  $.mbAudio ={
-    name:"mb.sounds",
-    author:"Matteo Bicocchi",
-    version:"0.1",
-    defaults:{
-      id:"",
-      ogg:"",
-      mp3:"",
-      loop:false,
-      volume:1
-    },
-    sounds:{},
-    loaded:new Object(),
-    play:function(sound){
-      var sID=typeof sound == "string"?sound:sound.ogg.split(".")[0].asId();
-      var soundEl= typeof sound == "string"?eval("$.mbAudio.sounds."+sound):sound;
-      var loop= soundEl.loop?soundEl.loop:$.mbAudio.defaults.loop;
-      var volume= typeof soundEl.volume == "number" ?soundEl.volume:$.mbAudio.defaults.volume;
-      if($.mbAudio.loaded[sID]!=1){
-        var audio=$("<audio>").attr("id",sID);
-        var oggSource=$("<source>").attr({src:soundEl.ogg, type:"audio/ogg"});
-        var mp3Source=$("<source>").attr({src:soundEl.mp3, type:"audio/mpeg"});
-        audio.append(mp3Source).append(oggSource);
+	$.mbAudio ={
+		name:"mb.sounds",
+		author:"Matteo Bicocchi",
+		version:"0.1",
+		defaults:{
+			id:"",
+			ogg:"",
+			mp3:"",
+			loop:false,
+			fade:false,
+			volume:1
+		},
+		sounds:{},
+		loaded:new Object(),
+		playing:[],
 
-        $("body").append(audio);
-        $.mbAudio.loaded[sID]=1;
-      }
+		build:function(sound){
+			var sID=typeof sound == "string"?sound:sound.ogg.split(".")[0].asId();
+			if($.mbAudio.loaded[sID]!=1){
+				var soundEl= typeof sound == "string"?eval("$.mbAudio.sounds."+sound):sound;
+				var audio=$("<audio>").attr({id:sID, preload:"auto"});
+				var oggSource=$("<source>").attr({src:soundEl.ogg, type:"audio/ogg"});
+				var mp3Source=$("<source>").attr({src:soundEl.mp3, type:"audio/mpeg"});
+				audio.append(mp3Source).append(oggSource);
+				audio.get(0).load();
 
-      var player= document.getElementById(sID);
-      if(loop){
-        counter=0;
-        $(player).bind("ended",function(){
-          this.currentTime = 0;
-          if(typeof loop == "number"){
-            counter++;
-            if(counter==loop){
-              $(this).unbind('ended');
-            }
-          }
-        });
+				$("body").append(audio);
+				$.mbAudio.loaded[sID]=1;
+			}
+		},
 
-        player.addEventListener('timeupdate', function(){},false);
-      }
-      player.volume=volume;
-      player.play();
-    },
-    stop:function(sound){
-      var sID=typeof sound == "string"?sound:sound.ogg.split(".")[0].asId();
-      var player= document.getElementById(sID);
-      player.pause();
-      player.currentTime=0;
-      $(player).unbind('ended');
-    }
-  }
+		preload:function(){
+			for(var i in $.mbAudio.sounds){
+				$.mbAudio.build(i);
+				//console.debug(i);
+			}
+		},
+
+		play:function(sound){
+			var sID=typeof sound == "string"?sound:sound.ogg.split(".")[0].asId();
+			var soundEl= typeof sound == "string"?eval("$.mbAudio.sounds."+sound):sound;
+			var loop= soundEl.loop?soundEl.loop:$.mbAudio.defaults.loop;
+			var fade= soundEl.fade?soundEl.fade:$.mbAudio.defaults.fade;
+			var volume= typeof soundEl.volume == "number" ?soundEl.volume:$.mbAudio.defaults.volume;
+
+			$.mbAudio.build(sound);
+
+			var player= document.getElementById(sID);
+			player.vol=volume;
+
+
+
+			if(loop){
+				counter=0;
+				$(player).bind("ended",function(){
+					this.currentTime = 0;
+					if(typeof loop == "number"){
+						counter++;
+						if(counter==loop){
+							$(this).unbind('ended');
+						}
+					}
+				});
+				player.addEventListener('timeupdate', function(){},false);
+			}
+
+			if(fade){
+				player.volume=0;
+				$.mbAudio.fadeIn(sound,4000);
+			}
+			else{
+				player.volume=0;
+				$.mbAudio.fadeIn(sound,1);
+			}
+		},
+
+		stop:function(sound){
+			var sID=typeof sound == "string"?sound:sound.ogg.split(".")[0].asId();
+			var player= document.getElementById(sID);
+
+			if(!player)
+				return;
+
+			$.mbAudio.fadeOut(sound,1);
+			player.currentTime=0;
+			$(player).unbind('ended');
+		},
+
+		destroy:function(sound){
+			var sID=typeof sound == "string"?sound:sound.ogg.split(".")[0].asId();
+			var player= document.getElementById(sID);
+
+			$(player).remove();
+			$.mbAudio.loaded[sID]=0;
+
+		},
+
+		muteAllSounds:function(){
+			var sounds=$.mbAudio.loaded;
+			for(var i in sounds){
+				var player= document.getElementById(i);
+				player.volume=0;
+			}
+			$.mbAudio.allMuted=true;
+		},
+
+		unMuteAllSounds:function(){
+			var sounds=$.mbAudio.playing;
+			for(var i in sounds){
+				var id=sounds[i];
+				var player= document.getElementById(id);
+
+				player.volume=player.vol/100;
+			}
+
+			$.mbAudio.allMuted=false;
+		},
+
+		fadeIn:function(sound,duration,callback){
+			if(!duration)
+				duration=100;
+			else
+				duration=duration/100;
+
+			$.mbAudio.build(sound);
+
+			var sID=typeof sound == "string"?sound:sound.ogg.split(".")[0].asId();
+			var player= document.getElementById(sID);
+
+			var soundEl= typeof sound == "string"?eval("$.mbAudio.sounds."+sound):sound;
+			var volume= typeof soundEl.volume == "number" ?soundEl.volume:$.mbAudio.defaults.volume;
+
+			console.debug(sound,volume);
+
+			clearInterval(player.fade);
+			player.play();
+			player.volume=0;
+
+			if(!$.mbAudio.allMuted){
+				var v=0;
+				player.fade=setInterval(function(){
+
+					if(v==volume){
+						clearInterval(player.fade);
+						if (typeof (callback)=="function")
+							callback();
+					}
+					if($.mbAudio.allMuted){
+						clearInterval(player.fade);
+						player.volume=0;
+						return;
+					}
+					player.volume=v/100;
+					v++
+				},duration);
+			}
+			$.mbAudio.playing.push(sID);
+			$(player).attr("isPlaying",true);
+
+		},
+
+		fadeOut:function(sound,duration,callback){
+
+			if(!duration)
+				duration=100;
+			else
+				duration=duration/100;
+
+			var sID=typeof sound == "string"?sound:sound.ogg.split(".")[0].asId();
+			var player= document.getElementById(sID);
+
+			if(!player)
+				return;
+
+			clearInterval(player.fade);
+
+			var v=player.volume>0?player.volume*100:1;
+			if(!v) v=1;
+			player.fade=setInterval(function(){
+
+				if(v<=0){
+					v=0;
+					clearInterval(player.fade);
+					player.pause();
+					if (typeof (callback)=="function")
+						callback();
+					return;
+				}
+				player.volume=v/100;
+				v--
+			},duration);
+
+			var idx=jQuery.inArray( sID, $.mbAudio.playing );
+			$.mbAudio.playing.splice(idx,1);
+			$(player).removeAttr("isPlaying");
+		}
+	}
 })(jQuery);
