@@ -1,6 +1,6 @@
 /*******************************************************************************
  jquery.mb.components
- Copyright (c) 2001-2010. Matteo Bicocchi (Pupunzi); Open lab srl, Firenze - Italy
+ Copyright (c) 2001-2011. Matteo Bicocchi (Pupunzi); Open lab srl, Firenze - Italy
  email: info@pupunzi.com
  site: http://pupunzi.com
 
@@ -12,7 +12,7 @@
 /*
  * jQuery.mb.components: jquery.mb.sounds
  * version: 0.1- 9-giu-2010 - 30
- * © 2001 - 2010 Matteo Bicocchi (pupunzi), Open Lab
+ * © 2001 - 2011 Matteo Bicocchi (pupunzi), Open Lab
  *
  * HTML5 AUDIO TAG doesn't work i IE8 <
  */
